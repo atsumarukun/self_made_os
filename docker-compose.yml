@@ -13,3 +13,4 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
     environment:
       DISPLAY: unix$DISPLAY
+    command: sh /files/boot.sh
