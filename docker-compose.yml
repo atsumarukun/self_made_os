@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  self_made_os:
+    build: ./
+    image: self_made_os
+    container_name: self_made_os
+    tty: true
+    privileged: true
+    working_dir: /files/
+    volumes:
+      - ./files/:/files/
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      DISPLAY: unix$DISPLAY
