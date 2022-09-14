@@ -36,5 +36,5 @@ Docker Compose|2.6.1
 - Kazuki Ohara(2021).「[Mac で始める「ゼロからのOS自作入門」](https://qiita.com/yamoridon/items/4905765cc6e4f320c9b5)」.Qiita(2022/09/14)
 <br><br>
 
-# 作成開始日
+## 作成開始日
 2022/09/14
