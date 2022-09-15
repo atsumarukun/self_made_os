@@ -1,3 +1,5 @@
 edk2/
-mnt/
-disk.img
+qemu/mnt/
+qemu/disk.img
+programs/kernel/*.o
+programs/kernel/kernel.elf

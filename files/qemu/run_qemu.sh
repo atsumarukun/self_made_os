@@ -18,6 +18,7 @@ mount -o loop $BASE_DIR/$DISK_IMG $MOUNT_POINT
 mkdir -p $MOUNT_POINT/EFI/BOOT
 
 cp /files/edk2/Build/LoaderPkgX64/DEBUG_CLANG38/X64/Loader.efi $MOUNT_POINT/EFI/BOOT/BOOTX64.EFI
+cp /files/programs/kernel/kernel.elf $MOUNT_POINT
 umount $MOUNT_POINT
 
 qemu-system-x86_64 \
