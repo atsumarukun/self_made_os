@@ -1,3 +1,5 @@
+#!/bin/bash
+
 DISK_IMG=disk.img
 BASE_DIR=/files/qemu
 MOUNT_POINT=$BASE_DIR/mnt
