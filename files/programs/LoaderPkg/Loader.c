@@ -74,7 +74,7 @@ EFI_STATUS ReadFile(EFI_FILE_PROTOCOL* file, VOID** buffer) {
   return file->Read(file, &file_size, *buffer);
 }
 
-EFI_STATUS ReadKernelFile(EFI_FILE_PROTOCOL* root_dir, UINT64* kernel_file_addr) {
+EFI_STATUS ReadKernelFile(EFI_FILE_PROTOCOL* root_dir, UINT64* kernel_file_addr, UINT64* kernel_file_size) {
   EFI_STATUS status;
 
   EFI_FILE_PROTOCOL* kernel_file;
@@ -89,17 +89,18 @@ EFI_STATUS ReadKernelFile(EFI_FILE_PROTOCOL* root_dir, UINT64* kernel_file_addr)
       return status;
   }
 
-  ELF64_FILE_HEADER* kernel_file_header = (ELF64_FILE_HEADER*) kernel_file_buf;
+  Elf64_Ehdr* kernel_file_header = (Elf64_Ehdr*) kernel_file_buf;
 
   *kernel_file_addr = MAX_UINT64;
   UINT64 kernel_file_end_addr = 0;
-  ELF64_PROGRAM_HEADER* kernel_program_header = (ELF64_PROGRAM_HEADER*) ((UINT64) kernel_file_header + kernel_file_header->e_phoff);
+  Elf64_Phdr* kernel_program_header = (Elf64_Phdr*) ((UINT64) kernel_file_header + kernel_file_header->e_phoff);
   for (uint16_t i = 0; i < kernel_file_header->e_phnum; i++) {
     if (kernel_program_header[i].p_type != PT_LOAD) continue;
     *kernel_file_addr = MIN(*kernel_file_addr, kernel_program_header[i].p_vaddr);
     kernel_file_end_addr = MAX(kernel_file_end_addr, kernel_program_header[i].p_vaddr + kernel_program_header[i].p_memsz);
   }
-  UINTN page_num = (kernel_file_end_addr - *kernel_file_addr + 0xfff) / 0x1000;
+  *kernel_file_size = kernel_file_end_addr - *kernel_file_addr;
+  UINTN page_num = (*kernel_file_size + 0xfff) / 0x1000;
   status = gBS->AllocatePages(AllocateAddress, EfiLoaderData, page_num, kernel_file_addr);
   if (EFI_ERROR(status)) {
       return status;
@@ -163,10 +164,10 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE IMAGE_HANDLE, EFI_SYSTEM_TABLE *SYSTEM_TAB
   ErrorHandling(status);
   Print(L"Open root directory is successed.\n");
 
-  UINT64 kernel_file_addr;
-  status = ReadKernelFile(root_dir, &kernel_file_addr);
+  UINT64 kernel_file_addr, kernel_file_size;
+  status = ReadKernelFile(root_dir, &kernel_file_addr, &kernel_file_size);
   ErrorHandling(status);
-  Print(L"Read kernel file is successed.\n");
+  Print(L"Read kernel file is successed. address: 0x%0lx, size: %lu bytes\n", kernel_file_addr, kernel_file_size);
 
   CHAR8 memory_map_buf[4096 * 4];
   struct MemoryMap memory_map = {sizeof(memory_map_buf), memory_map_buf, 0, 0, 0, 0};
@@ -174,7 +175,7 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE IMAGE_HANDLE, EFI_SYSTEM_TABLE *SYSTEM_TAB
   ErrorHandling(status);
   Print(L"Get memory map is successed.\n");
 
-  Print(L"Exit voot services and execute kernel file.\n");
+  Print(L"Exit boot services and execute kernel file.\n");
   status = ExitBootServices(IMAGE_HANDLE, &memory_map);
   ErrorHandling(status);
 
