@@ -1,7 +1,16 @@
+/*
+@file Loader.c
+
+kernelを起動するためのbootファイル．
+edk2を利用.
+*/
+
 #include <Uefi.h>
 #include <Library/UefiLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/PrintLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/BaseMemoryLib.h>
 #include <Protocol/LoadedImage.h>
 #include <Protocol/SimpleFileSystem.h>
 #include <Protocol/DiskIo2.h>
@@ -9,6 +18,7 @@
 #include <Guid/FileInfo.h>
 
 #include "memory_map.hpp"
+#include "elf.hpp"
 
 EFI_STATUS OpenRootDir(EFI_HANDLE IMAGE_HANDLE, EFI_FILE_PROTOCOL** root_dir) {
   EFI_STATUS status;
@@ -43,22 +53,67 @@ EFI_STATUS OpenRootDir(EFI_HANDLE IMAGE_HANDLE, EFI_FILE_PROTOCOL** root_dir) {
     return EFI_SUCCESS;
 }
 
-EFI_PHYSICAL_ADDRESS LoadKernelFile(EFI_FILE_PROTOCOL* root_dir) {
-  EFI_FILE_PROTOCOL* kernel_file;
-  root_dir->Open(root_dir, &kernel_file, L"kernel.elf", EFI_FILE_MODE_READ, 0);
+EFI_STATUS ReadFile(EFI_FILE_PROTOCOL* file, VOID** buffer) {
+  EFI_STATUS status;
 
   UINTN file_info_size = sizeof(EFI_FILE_INFO) + sizeof(CHAR16) * 12;
   UINT8 file_info_buffer[file_info_size];
-  kernel_file->GetInfo(kernel_file, &gEfiFileInfoGuid, &file_info_size, file_info_buffer);
+  status = file->GetInfo(file, &gEfiFileInfoGuid, &file_info_size, file_info_buffer);
+  if (EFI_ERROR(status)) {
+    return status;
+  }
 
   EFI_FILE_INFO* file_info = (EFI_FILE_INFO*)file_info_buffer;
-  UINTN kernel_file_size = file_info->FileSize;
+  UINTN file_size = file_info->FileSize;
 
-  EFI_PHYSICAL_ADDRESS kernel_base_addr = 0x100000;
-  gBS->AllocatePages(AllocateAddress, EfiLoaderData, (kernel_file_size + 0xfff) / 0x1000, &kernel_base_addr);
-  kernel_file->Read(kernel_file, &kernel_file_size, (VOID*)kernel_base_addr);
-  Print(L"Kernel: 0x%0lx (%lu bytes)\n", kernel_base_addr, kernel_file_size);
-  return kernel_base_addr;
+  status = gBS->AllocatePool(EfiLoaderData, file_size, buffer);
+  if (EFI_ERROR(status)) {
+    return status;
+  }
+
+  return file->Read(file, &file_size, *buffer);
+}
+
+EFI_STATUS ReadKernelFile(EFI_FILE_PROTOCOL* root_dir, UINT64* kernel_file_addr) {
+  EFI_STATUS status;
+
+  EFI_FILE_PROTOCOL* kernel_file;
+  status = root_dir->Open(root_dir, &kernel_file, L"kernel.elf", EFI_FILE_MODE_READ, 0);
+  if (EFI_ERROR(status)) {
+      return status;
+  }
+
+  VOID* kernel_file_buf;
+  status = ReadFile(kernel_file, &kernel_file_buf);
+  if (EFI_ERROR(status)) {
+      return status;
+  }
+
+  ELF64_FILE_HEADER* kernel_file_header = (ELF64_FILE_HEADER*) kernel_file_buf;
+
+  *kernel_file_addr = MAX_UINT64;
+  UINT64 kernel_file_end_addr = 0;
+  ELF64_PROGRAM_HEADER* kernel_program_header = (ELF64_PROGRAM_HEADER*) ((UINT64) kernel_file_header + kernel_file_header->e_phoff);
+  for (uint16_t i = 0; i < kernel_file_header->e_phnum; i++) {
+    if (kernel_program_header[i].p_type != PT_LOAD) continue;
+    *kernel_file_addr = MIN(*kernel_file_addr, kernel_program_header[i].p_vaddr);
+    kernel_file_end_addr = MAX(kernel_file_end_addr, kernel_program_header[i].p_vaddr + kernel_program_header[i].p_memsz);
+  }
+  UINTN page_num = (kernel_file_end_addr - *kernel_file_addr + 0xfff) / 0x1000;
+  status = gBS->AllocatePages(AllocateAddress, EfiLoaderData, page_num, kernel_file_addr);
+  if (EFI_ERROR(status)) {
+      return status;
+  }
+
+  for (uint16_t i = 0; i < kernel_file_header->e_phnum; i++) {
+    if (kernel_program_header[i].p_type != PT_LOAD) continue;
+    UINT64 kernel_file_segment = (UINT64) kernel_file_header + kernel_program_header[i].p_offset;
+    CopyMem((VOID*) kernel_program_header[i].p_vaddr, (VOID*) kernel_file_segment, kernel_program_header[i].p_filesz);
+    UINTN remain_bytes = kernel_program_header[i].p_memsz - kernel_program_header[i].p_filesz;
+    SetMem((VOID*) (kernel_program_header[i].p_vaddr + kernel_program_header[i].p_filesz), remain_bytes, 0);
+  }
+
+  return gBS->FreePool(kernel_file_buf);
 }
 
 EFI_STATUS GetMemoryMap(struct MemoryMap* map) {
@@ -76,6 +131,23 @@ EFI_STATUS GetMemoryMap(struct MemoryMap* map) {
   );
 }
 
+EFI_STATUS ExitBootServices(EFI_HANDLE IMAGE_HANDLE, struct MemoryMap* memory_map) {
+  EFI_STATUS status;
+
+  status = gBS->ExitBootServices(IMAGE_HANDLE, memory_map->map_key);
+  if (EFI_ERROR(status)) {
+    status = GetMemoryMap(memory_map);
+    if (EFI_ERROR(status)) {
+      return status;
+    }
+    status = gBS->ExitBootServices(IMAGE_HANDLE, memory_map->map_key);
+    if (EFI_ERROR(status)) {
+      return status;
+    }
+  }
+  return EFI_SUCCESS;
+}
+
 void ErrorHandling(EFI_STATUS status) {
   if (EFI_ERROR(status)) {
     Print(L"%r\n", status);
@@ -91,32 +163,24 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE IMAGE_HANDLE, EFI_SYSTEM_TABLE *SYSTEM_TAB
   ErrorHandling(status);
   Print(L"Open root directory is successed.\n");
 
-  EFI_PHYSICAL_ADDRESS kernel_base_addr = LoadKernelFile(root_dir);
+  UINT64 kernel_file_addr;
+  status = ReadKernelFile(root_dir, &kernel_file_addr);
+  ErrorHandling(status);
+  Print(L"Read kernel file is successed.\n");
 
   CHAR8 memory_map_buf[4096 * 4];
-  Print(L"%ld\n", sizeof(memory_map_buf));
   struct MemoryMap memory_map = {sizeof(memory_map_buf), memory_map_buf, 0, 0, 0, 0};
   status = GetMemoryMap(&memory_map);
   ErrorHandling(status);
   Print(L"Get memory map is successed.\n");
 
-  status = gBS->ExitBootServices(IMAGE_HANDLE, memory_map.map_key);
-  if (EFI_ERROR(status)) {
-    status = GetMemoryMap(&memory_map);
-    if (EFI_ERROR(status)) {
-      Print(L"failed to get memory map: %r\n", status);
-      while (1);
-    }
-    status = gBS->ExitBootServices(IMAGE_HANDLE, memory_map.map_key);
-    if (EFI_ERROR(status)) {
-      Print(L"Could not exit boot service: %r\n", status);
-      while (1);
-    }
-  }
+  Print(L"Exit voot services and execute kernel file.\n");
+  status = ExitBootServices(IMAGE_HANDLE, &memory_map);
+  ErrorHandling(status);
 
-  UINT64 entry_addr = *(UINT64*) (kernel_base_addr + 24);
+  UINT64 entry_addr = *(UINT64*) (kernel_file_addr + 24);
   typedef void EntryPointType(void);
-  EntryPointType* entry_point = (EntryPointType*)entry_addr;
+  EntryPointType* entry_point = (EntryPointType*) entry_addr;
   entry_point();
 
   while (1) __asm__("hlt");
