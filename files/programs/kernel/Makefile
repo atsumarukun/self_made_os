@@ -1,5 +1,5 @@
 TARGET = kernel.elf
-OBJS = kernel.o graphics/graphics.o
+OBJS = kernel.o graphics/graphics.o graphics/text.o
 
 CPPFLAGS += -I.
 CXXFLAGS += -O2 -Wall -g --target=x86_64-elf -ffreestanding -mno-red-zone -fno-exceptions -fno-rtti -std=c++17
@@ -10,7 +10,7 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -rf *.o
+	rm -rf *.o */*.o
 
 kernel.elf: $(OBJS) Makefile
 	ld.lld $(LDFLAGS) -o kernel.elf $(OBJS)
