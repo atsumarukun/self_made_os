@@ -17,7 +17,7 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer) {
             frame_buffer_writer.WritePixel(x, y, 0x000000);
         }
     }
-    WriteOneLetter(frame_buffer_writer, 100, 100);
+    WriteString(frame_buffer_writer, "AbAAZCA");
 
     while (1) __asm__("hlt");
 }

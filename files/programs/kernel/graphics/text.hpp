@@ -2,4 +2,4 @@
 
 #include "graphics.hpp"
 
-void WriteOneLetter(FrameBufferWriter frame_buffer_writer, int x, int y);
+void WriteString(FrameBufferWriter frame_buffer_writer, const char* string);
