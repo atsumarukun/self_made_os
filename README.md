@@ -34,6 +34,7 @@ Docker Compose|2.6.1
 - 内田公太(2021).『ゼロからのOS自作入門』.マイナビ
 - osdev-jp(2017).「[EDK II で UEFI アプリケーションを作る](https://osdev-jp.readthedocs.io/ja/latest/2017/create-uefi-app-with-edk2.html)」.osdev-jp core(2022/09/14)
 - Kazuki Ohara(2021).「[Mac で始める「ゼロからのOS自作入門」](https://qiita.com/yamoridon/items/4905765cc6e4f320c9b5)」.Qiita(2022/09/14)
+- 「[ELF-64 Object File Format](https://uclibc.org/docs/elf-64-gen.pdf)」.ELF-64 Object File Format(2022/09/16)
 <br><br>
 
 ## 作成開始日
