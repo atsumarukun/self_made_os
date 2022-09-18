@@ -10,21 +10,19 @@ namespace {
         return &_binary_graphics_font_bin_start + index;
     }
 
-    void WriteOneLetter(FrameBufferWriter frame_buffer_writer, int x, int y, char character) {
+    void WriteOneLetter(FrameBufferWriter& frame_buffer_writer, Coordinate Coordinate, char character) {
         const uint8_t* font = GetFont(character);
         if (!font) return;
         for (int dy = 0; dy < 16; dy++) {
             for (int dx = 0; dx < 8; dx++) {
-                if ((font[dy] << dx) & 0x80u) frame_buffer_writer.WritePixel(x + dx, y + dy, 0xffffff);
+                if ((font[dy] << dx) & 0x80u) frame_buffer_writer.WritePixel({Coordinate.x + dx, Coordinate.y + dy}, 0xffffff);
             }
         }
     }
 }
 
-void WriteString(FrameBufferWriter frame_buffer_writer, const char* string) {
-    unsigned int x = 0;
-    while (*string) {
-        WriteOneLetter(frame_buffer_writer, 10 + 8 * (x++), 10, *string);
-        string++;
+void WriteString(FrameBufferWriter& frame_buffer_writer, Coordinate Coordinate, const char* string) {
+    for (int i = 0; string[i]; i++) {
+        WriteOneLetter(frame_buffer_writer, {Coordinate.x + 8 * i, Coordinate.y}, string[i]);
     }
 }

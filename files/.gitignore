@@ -1,6 +1,8 @@
 edk2/
+x86_64-elf/
 qemu/mnt/
 qemu/disk.img
 programs/kernel/*.o
 programs/kernel/*/*.o
+programs/kernel/*/*.bin
 programs/kernel/kernel.elf

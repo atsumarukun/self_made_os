@@ -15,7 +15,7 @@ def compile(src):
         if not m:
             continue
 
-        bits = bits = [(0 if x == '.' else 1) for x in m.group(1)]
+        bits = [(0 if x == '.' else 1) for x in m.group(1)]
         bits_int = functools.reduce(lambda a, b: 2*a + b, bits)
         result.append(bits_int.to_bytes(1, byteorder='little'))
 
@@ -24,7 +24,6 @@ def compile(src):
 def main():
     with open(sys.argv[1], "wb") as out_file, open(sys.argv[2], "r") as in_file:
         src = in_file.read()
-        print(src)
         out_file.write(compile(src))
 
 if __name__ == "__main__":
