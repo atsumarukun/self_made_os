@@ -9,6 +9,7 @@
 #include "graphics/frame_buffer.hpp"
 #include "graphics/graphics.hpp"
 #include "graphics/text.hpp"
+#include "error/error.hpp"
 
 extern "C" void KernelMain(const FrameBuffer& frame_buffer) {
     FrameBufferWriter frame_buffer_writer(frame_buffer);
@@ -19,10 +20,8 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer) {
         }
     }
 
-    PrintFileName(frame_buffer_writer);
-    char s[128];
-    sprintf(s, "%d", 17);
-    WriteString(frame_buffer_writer, {10, 26}, s);
+    Error error = MakeError(Error::success);
+    WriteString(frame_buffer_writer, {10, 26}, error.Message());
 
     while (1) __asm__("hlt");
 }
