@@ -32,19 +32,19 @@ enum class MemoryType: uint32_t {
 };
 
 typedef struct {
-    enum MemoryType memory_type;
+    enum MemoryType type;
     unsigned int* physical_address;
     unsigned int* virtual_address;
     uint64_t number_of_pages;
     uint64_t attribute;
 } MemoryDescriptor;
 
-inline bool IsAvailableMemoryType(MemoryType memory_type) {
-    return memory_type == MemoryType::EfiLoaderCode       ||
-           memory_type == MemoryType::EfiLoaderData       ||
-           memory_type == MemoryType::EfiBootServicesCode ||
-           memory_type == MemoryType::EfiBootServicesData ||
-           memory_type == MemoryType::EfiConventionalMemory;
+inline bool IsAvailableMemoryType(MemoryType type) {
+    return type == MemoryType::EfiLoaderCode       ||
+           type == MemoryType::EfiLoaderData       ||
+           type == MemoryType::EfiBootServicesCode ||
+           type == MemoryType::EfiBootServicesData ||
+           type == MemoryType::EfiConventionalMemory;
 }
 
 #endif
