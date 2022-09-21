@@ -54,6 +54,7 @@ Docker Compose|2.6.1
 - Kazuki Ohara(2021).「[Mac で始める「ゼロからのOS自作入門」](https://qiita.com/yamoridon/items/4905765cc6e4f320c9b5)」.Qiita(2022/09/14)
 - 「[ELF-64 Object File Format](https://uclibc.org/docs/elf-64-gen.pdf)」.ELF-64 Object File Format(2022/09/16)
 - 「[osdev-jp](https://osdev.jp/wiki/building-libcxx)」.osdev-jp(2022/09/18)
+- AMD(2021). 「AMD64 Architecture Programmer’s Manual: Volumes 1-5[https://www.amd.com/system/files/TechDocs/40332.pdf]」.AMD(2022/09/21)
 <br><br>
 
 ## 作成開始日
