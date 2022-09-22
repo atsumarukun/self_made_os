@@ -55,6 +55,7 @@ Docker Compose|2.6.1
 - 「[ELF-64 Object File Format](https://uclibc.org/docs/elf-64-gen.pdf)」.ELF-64 Object File Format(2022/09/16)
 - 「[osdev-jp](https://osdev.jp/wiki/building-libcxx)」.osdev-jp(2022/09/18)
 - AMD(2021). 「[AMD64 Architecture Programmer’s Manual: Volumes 1-5](https://www.amd.com/system/files/TechDocs/40332.pdf)」.AMD(2022/09/21)
+- itto-ki(2018). 「[セグメンテーションでのメモリ管理について](https://itto-ki.hatenablog.com/entry/2018/04/13/214238)」.Hatena Blog(2022/09/21)
 <br><br>
 
 ## 作成開始日

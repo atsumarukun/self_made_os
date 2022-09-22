@@ -42,4 +42,9 @@ union SegmentDescriptor {
     } __attribute__((packed)) bits;
 } __attribute__((packed));
 
+struct GDTR {
+    uint16_t limit;
+    uintptr_t address;
+} __attribute__((packed));
+
 void SetGlobalDescriptorTable();

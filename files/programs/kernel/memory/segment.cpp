@@ -4,7 +4,8 @@
 #include "memory.h"
 
 using namespace std;
-uintptr_t gdtr;
+
+GDTR gdtr;
 
 namespace {
     array<SegmentDescriptor, 2> gdt;
@@ -24,7 +25,7 @@ namespace {
 void SetGlobalDescriptorTable() {
     gdt[0].data = 0;
     SetCodeSegment(gdt[1], ExecuteReadable, 0);
-    gdtr |= sizeof(gdt) - 1;
-    gdtr |= (uintptr_t) &gdt[0] << 16;
+    gdtr.limit = sizeof(gdt) - 1;
+    gdtr.address = (uintptr_t) &gdt[0];
     __asm__ ("lgdt gdtr");
 }

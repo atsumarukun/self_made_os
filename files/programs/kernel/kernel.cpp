@@ -29,8 +29,8 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer, const MemoryMap& mem
     }
 
     char s[1024];
-    sprintf(s, "%lu", sizeof(SegmentDescriptor));
-    WriteString(frame_buffer_writer, {10, 100}, s);
+    sprintf(s, "%lu", sizeof(GDTR));
+    WriteString(frame_buffer_writer, {10, 10}, s);
 
     int y = 0;
     for (unsigned int* i = (unsigned int*) memory_map.map_buf; i < (unsigned int*) memory_map.map_buf + memory_map.map_size; i += memory_map.descriptor_size) {
