@@ -1,3 +1,9 @@
+/*
+@file segment.cpp
+
+セグメントの設定ファイル.
+*/
+
 #include <array>
 
 #include "segment.hpp"

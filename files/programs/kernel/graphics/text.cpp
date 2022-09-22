@@ -1,3 +1,9 @@
+/*
+@file graphics.cpp
+
+文字表示の設定ファイル.
+*/
+
 #include "text.hpp"
 
 extern const uint8_t _binary_graphics_font_bin_start;

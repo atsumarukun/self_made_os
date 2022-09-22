@@ -1,3 +1,9 @@
+/*
+@file graphics.cpp
+
+グラフィックの設定ファイル.
+*/
+
 #include "graphics.hpp"
 
 namespace {
