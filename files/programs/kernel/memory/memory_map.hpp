@@ -33,8 +33,8 @@ enum class MemoryType: uint32_t {
 
 typedef struct {
     enum MemoryType type;
-    unsigned int* physical_address;
-    unsigned int* virtual_address;
+    uintptr_t physical_address;
+    uintptr_t virtual_address;
     uint64_t number_of_pages;
     uint64_t attribute;
 } MemoryDescriptor;
