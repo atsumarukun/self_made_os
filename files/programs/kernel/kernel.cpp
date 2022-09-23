@@ -15,6 +15,8 @@
 #include "memory/paging.hpp"
 #include "register/register.h"
 
+#include "error/error.hpp"
+
 alignas(16) uint8_t kernel_main_stack[1024 * 1024];
 
 char memory_manager_buffer[sizeof(MemoryManager)];
@@ -38,11 +40,16 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
         }
     }
 
-    char s[1024];
-    sprintf(s, "%p", memory_manager);
-    WriteString(frame_buffer_writer, {10, 10}, s);
-    sprintf(s, "%p", &kernel_main_stack);
-    WriteString(frame_buffer_writer, {10, 26}, s);
+    for (int i = 0; i < 2; i++) {
+        auto [s, e, err] = memory_manager->Allocate(1024);
+        if (err) {
+            WriteString(frame_buffer_writer, {10, 10 + 16 * i}, err.Message());
+        } else {
+            char st[1024];
+            sprintf(st, "%lu to %lu", s, e);
+            WriteString(frame_buffer_writer, {10, 10 + 16 * i}, st);
+        }
+    }
 
     while (1) __asm__("hlt");
 }

@@ -1,26 +1,36 @@
 #pragma once
 
+#include <stdio.h>
 #include <array>
 
 using namespace std;
+
+#define MakeError(error_code) Error(error_code, __FILE__, __LINE__)
 
 class Error {
     public:
         enum ErrorCode {
             Success,
-            Test,
+            MemoryFrameShortage,
         };
-        Error(ErrorCode error_code, const char* file, int line): error_message_{error_names_[error_code]}, file_{file}, line_{line} {}
-        char* Message();
+        Error(ErrorCode error_code, const char* file, int line): error_code_{error_code} {sprintf(error_message_, "%s:%d: %s", file, line, error_names_[error_code]);}
+        char* Message() {return &error_message_[0];}
+        operator bool() const {
+            return this->error_code_ != Success;
+        }
 
     private:
-        const char* error_message_;
-        const char* file_;
-        int line_;
+        enum ErrorCode error_code_;
+        char error_message_[1024];
         static constexpr array error_names_ {
-            "Cuccess",
-            "Test",
+            "Success",
+            "MemoryFrameShortage",
         };
 };
 
-#define MakeError(error_code) Error(error_code, __FILE__, __LINE__)
+template <class T, class U>
+struct WithError{
+    T value;
+    U value2;
+    Error error;
+};
