@@ -1,8 +1,6 @@
 #include <array>
 #include <stdint.h>
 
-#include "../register/register.h"
-
 using namespace std;
 
 namespace  {
@@ -23,5 +21,6 @@ void MakePageTable() {
             page_directory[i][j] = i * PageSize1G + j * PageSize2M | 0x083;
         }
     }
-    SetCR3((uintptr_t)&pml4_table[0]);
+    uintptr_t pml4_table_address = (uintptr_t) &pml4_table[0];
+    __asm__ volatile("movq %%rsi, %%cr3" ::"S"(pml4_table_address):"cr3");
 }

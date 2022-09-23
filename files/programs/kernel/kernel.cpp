@@ -5,20 +5,20 @@
 */
 
 #include <stdio.h>
+#include "graphics/text.hpp"
 
 #include "graphics/frame_buffer.hpp"
 #include "graphics/graphics.hpp"
-#include "graphics/text.hpp"
 #include "memory/memory_map.hpp"
 #include "memory/memory_manager.hpp"
 #include "memory/segment.hpp"
 #include "memory/paging.hpp"
 #include "register/register.h"
 
+alignas(16) uint8_t kernel_main_stack[1024 * 1024];
+
 char memory_manager_buffer[sizeof(MemoryManager)];
 MemoryManager* memory_manager;
-
-alignas(16) uint8_t kernel_main_stack[1024 * 1024];
 
 extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap& memory_map_tmp) {
     FrameBuffer frame_buffer = frame_buffer_tmp;
@@ -37,6 +37,12 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
             frame_buffer_writer.WritePixel({x, y}, 0x000000);
         }
     }
+
+    char s[1024];
+    sprintf(s, "%p", memory_manager);
+    WriteString(frame_buffer_writer, {10, 10}, s);
+    sprintf(s, "%p", &kernel_main_stack);
+    WriteString(frame_buffer_writer, {10, 26}, s);
 
     while (1) __asm__("hlt");
 }

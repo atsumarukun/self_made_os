@@ -4,10 +4,6 @@
 
 #include "memory_map.hpp"
 
-#include <stdio.h>
-#include "graphics/graphics.hpp"
-#include "graphics/text.hpp"
-
 using namespace std;
 
 namespace {
@@ -35,4 +31,5 @@ class MemoryManager {
 
     private:
         array<unsigned long, NUMBER_OF_FRAMES_SUPPORTED / NUMBER_OF_MAP_LINE_BITS> memory_bit_map_;
+        int last_frame_index_ = NUMBER_OF_FRAMES_SUPPORTED;
 };
