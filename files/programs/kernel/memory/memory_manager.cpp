@@ -19,18 +19,18 @@ MemoryManager::MemoryManager(const MemoryMap& memory_map) {
     last_frame_index_ = free_end_address / FRAME_SIZE;
 }
 
-WithError<size_t, size_t> MemoryManager::Allocate(size_t number_of_frames) {
-    size_t start_frame_index = 0;
-    for (size_t i = 0; i < last_frame_index_; i++) {
+WithError<uintptr_t> MemoryManager::Allocate(size_t number_of_frames) {
+    uintptr_t start_frame_index = 0;
+    for (uintptr_t i = 0; i < last_frame_index_; i++) {
         if (memory_bit_map_[i / NUMBER_OF_MAP_LINE_BITS] >> (i % NUMBER_OF_MAP_LINE_BITS) & 1) {
             start_frame_index = i + 1;
         }
         if ((i + 1) - start_frame_index == number_of_frames) {
             SetIsAllocationBits(start_frame_index, number_of_frames, true);
-            return {start_frame_index, i, MakeError(Error::Success)};
+            return {start_frame_index * FRAME_SIZE, MakeError(Error::Success)};
         }
     }
-    return {0, 0, MakeError(Error::MemoryFrameShortage)};
+    return {0, MakeError(Error::MemoryFrameShortage)};
 }
 
 void MemoryManager::SetIsAllocationBits(unsigned int start_frame_index, size_t number_of_frames, bool is_allocation) {

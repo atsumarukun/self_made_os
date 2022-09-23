@@ -28,9 +28,8 @@ class Error {
         };
 };
 
-template <class T, class U>
+template <class T>
 struct WithError{
     T value;
-    U value2;
     Error error;
 };

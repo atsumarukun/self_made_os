@@ -27,12 +27,11 @@ namespace {
 class MemoryManager {
     public:
         MemoryManager(const MemoryMap& memory_map);
-        WithError<size_t, size_t> Allocate(size_t number_of_frames);
-        void Free(unsigned int frame_infex, size_t number_of_frames);
+        WithError<uintptr_t> Allocate(size_t number_of_frames);
 
     private:
         array<unsigned long, NUMBER_OF_FRAMES_SUPPORTED / NUMBER_OF_MAP_LINE_BITS> memory_bit_map_;
-        int last_frame_index_ = NUMBER_OF_FRAMES_SUPPORTED;
+        unsigned int last_frame_index_ = NUMBER_OF_FRAMES_SUPPORTED;
 
         void SetIsAllocationBits(unsigned int start_frame_index, size_t number_of_frames, bool is_allocation);
 };

@@ -41,12 +41,12 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
     }
 
     for (int i = 0; i < 2; i++) {
-        auto [s, e, err] = memory_manager->Allocate(1024);
+        auto [s, err] = memory_manager->Allocate(5);
         if (err) {
             WriteString(frame_buffer_writer, {10, 10 + 16 * i}, err.Message());
         } else {
             char st[1024];
-            sprintf(st, "%lu to %lu", s, e);
+            sprintf(st, "%lu", s);
             WriteString(frame_buffer_writer, {10, 10 + 16 * i}, st);
         }
     }
