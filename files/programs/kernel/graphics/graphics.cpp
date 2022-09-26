@@ -4,6 +4,8 @@
 グラフィックの設定ファイル.
 */
 
+#include <math.h>
+
 #include "graphics.hpp"
 
 extern const uint8_t _binary_graphics_font_bin_start;
@@ -27,10 +29,22 @@ namespace {
     }
 }
 
-void FrameBufferWriter::CreateRectangle(Coordinate start_coordinate, Coordinate end_coordinate, unsigned int color) {
-    for (int y = 0; y < end_coordinate.y - start_coordinate.y; y++) {
-        for (int x = 0; x < end_coordinate.x - start_coordinate.x; x++) {
-            WritePixel({start_coordinate.x + x, start_coordinate.y + y}, color);
+void FrameBufferWriter::DrawRectangle(Coordinate coordinate, Size size, unsigned int color) {
+    for (int y = 0; y < size.height; y++) {
+        for (int x = 0; x < size.width; x++) {
+            WritePixel({coordinate.x + x, coordinate.y + y}, color);
+        }
+    }
+}
+
+void FrameBufferWriter::DrawCircle(Coordinate coordinate, Size size, unsigned int color) {
+    for (int y = 0; y < size.height / 2; y++) {
+        int max_x  = (int) sqrt((1 - pow(y, 2)/pow(size.height / 2, 2)) * pow(size.width / 2, 2));
+        for (int x = 0; x < max_x; x++) {
+            WritePixel({coordinate.x + x, coordinate.y + y}, color);
+            WritePixel({coordinate.x - x, coordinate.y + y}, color);
+            WritePixel({coordinate.x + x, coordinate.y - y}, color);
+            WritePixel({coordinate.x - x, coordinate.y - y}, color);
         }
     }
 }
