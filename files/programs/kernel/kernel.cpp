@@ -12,8 +12,6 @@
 #include "memory/paging.hpp"
 #include "register/register.h"
 
-#include "error/error.hpp"
-
 alignas(16) uint8_t kernel_main_stack[1024 * 1024];
 
 char memory_manager_buffer[sizeof(MemoryManager)];
@@ -32,7 +30,7 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
     memory_manager = new(memory_manager_buffer) MemoryManager(memory_map);
 
     frame_buffer_writer.DrawRectangle({0, 0}, {frame_buffer.width, frame_buffer.height}, 0x000000);
-    frame_buffer_writer.DrawCircle({100, 100}, {15, 15}, 0x460d43);
+    frame_buffer_writer.DrawMouseCursor({300, 200});
     frame_buffer_writer.WriteString({10, 10}, "Hello World!", 0xffffff);
 
     while (1) __asm__("hlt");

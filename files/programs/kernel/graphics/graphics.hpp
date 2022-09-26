@@ -2,13 +2,13 @@
 
 #include "frame_buffer.hpp"
 
-typedef struct {
+struct Coordinate{
     unsigned int x, y;
-} Coordinate;
+};
 
-typedef struct {
+struct Size {
     unsigned int width, height;
-} Size;
+};
 
 class FrameBufferWriter {
     public:
@@ -16,6 +16,7 @@ class FrameBufferWriter {
         void DrawRectangle(Coordinate coordinate, Size size, unsigned int color);
         void DrawCircle(Coordinate coordinate, Size size, unsigned int color);
         void WriteString(Coordinate coordinate, const char* string, unsigned int color);
+        void DrawMouseCursor(Coordinate coordinate);
 
     private:
         const FrameBuffer& frame_buffer_;

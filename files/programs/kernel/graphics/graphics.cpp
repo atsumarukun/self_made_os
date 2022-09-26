@@ -27,6 +27,31 @@ namespace {
         if (index >= (uintptr_t) &_binary_graphics_font_bin_size) return nullptr;
         return &_binary_graphics_font_bin_start + index;
     }
+
+    const int mouse_cursor_height = 20;
+    const int mouse_cursor_width = 12;
+    const char mouse_cursor_form[mouse_cursor_height][mouse_cursor_width + 1] = {
+        "@           ",
+        "@@          ",
+        "@.@         ",
+        "@..@        ",
+        "@...@       ",
+        "@....@      ",
+        "@.....@     ",
+        "@......@    ",
+        "@.......@   ",
+        "@........@  ",
+        "@.........@ ",
+        "@..........@",
+        "@.........@ ",
+        "@........@  ",
+        "@.......@   ",
+        "@@@@@...@   ",
+        "     @..@   ",
+        "      @.@   ",
+        "       @@   ",
+        "        @   ",
+    };
 }
 
 void FrameBufferWriter::DrawRectangle(Coordinate coordinate, Size size, unsigned int color) {
@@ -52,6 +77,18 @@ void FrameBufferWriter::DrawCircle(Coordinate coordinate, Size size, unsigned in
 void FrameBufferWriter::WriteString(Coordinate Coordinate, const char* string, unsigned int color) {
     for (int i = 0; string[i]; i++) {
         WriteOneLetter({Coordinate.x + 8 * i, Coordinate.y}, string[i], color);
+    }
+}
+
+void FrameBufferWriter::DrawMouseCursor(Coordinate coordinate) {
+    for (int y = 0; y < mouse_cursor_height; y++) {
+        for (int x = 0; x < mouse_cursor_width; x++) {
+            if (mouse_cursor_form[y][x] == '@') {
+                WritePixel({coordinate.x + x, coordinate.y + y}, 0xdddddd);
+            } else if (mouse_cursor_form[y][x] == '.') {
+                WritePixel({coordinate.x + x, coordinate.y + y}, 0x222222);
+            }
+        }
     }
 }
 
