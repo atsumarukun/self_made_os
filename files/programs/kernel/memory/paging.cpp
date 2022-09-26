@@ -28,5 +28,5 @@ void MakePageTable() {
         }
     }
     uintptr_t pml4_table_address = (uintptr_t) &pml4_table[0];
-    __asm__ volatile("movq %%rsi, %%cr3" ::"S"(pml4_table_address):"cr3");
+    __asm__ volatile("movq %%rsi, %%cr3":: "S"(pml4_table_address): "cr3");
 }

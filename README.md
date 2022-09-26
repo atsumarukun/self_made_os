@@ -57,6 +57,8 @@ Docker Compose|2.6.1
 - AMD(2021). 「[AMD64 Architecture Programmer’s Manual: Volumes 1-5](https://www.amd.com/system/files/TechDocs/40332.pdf)」.AMD(2022/09/21)
 - itto-ki(2018). 「[セグメンテーションでのメモリ管理について](https://itto-ki.hatenablog.com/entry/2018/04/13/214238)」.Hatena Blog(2022/09/21)
 - UEFI(2021). 「[Unified Extensible Firmware Interface SPECIFICATIONS](https://uefi.org/specifications)」.UEFI(2022/09/23)
+- ibiblio.org(2003). 「[GCC-Inline-Assembly-HOWTO](http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html)」.ibiblio.org(2022/09/26)
+- osdev.org「[PCI](https://wiki.osdev.org/PCI#Base_Address_Registers)」.osdev.org(2022/09/26)
 <br><br>
 
 ## 作成開始日
