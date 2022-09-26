@@ -21,7 +21,7 @@ namespace {
     static const unsigned int UEFI_FRAME_SIZE = 4_KB;
     static const unsigned int FRAME_SIZE = 4_KB;
     static const unsigned int NUMBER_OF_FRAMES_SUPPORTED = 128_GB / FRAME_SIZE;
-    static const unsigned int NUMBER_OF_MAP_LINE_BITS = 8 * sizeof(unsigned long);
+    static const unsigned int NUMBER_OF_MAP_LINE_BITS = 8 * sizeof(uint64_t);
 }
 
 class MemoryManager {
@@ -30,7 +30,7 @@ class MemoryManager {
         WithError<uintptr_t> Allocate(size_t number_of_frames);
 
     private:
-        array<unsigned long, NUMBER_OF_FRAMES_SUPPORTED / NUMBER_OF_MAP_LINE_BITS> memory_bit_map_;
+        array<uint64_t, NUMBER_OF_FRAMES_SUPPORTED / NUMBER_OF_MAP_LINE_BITS> memory_bit_map_;
         unsigned int last_frame_index_ = NUMBER_OF_FRAMES_SUPPORTED;
 
         void SetIsAllocationBits(unsigned int start_frame_index, size_t number_of_frames, bool is_allocation);

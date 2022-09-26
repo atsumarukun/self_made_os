@@ -1,3 +1,9 @@
+/*
+@file memomry_manager.cpp
+
+メモリ管理のファイル.
+*/
+
 #include "memory_manager.hpp"
 
 MemoryManager::MemoryManager(const MemoryMap& memory_map) {

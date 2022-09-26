@@ -1,3 +1,9 @@
+/*
+@file paging.cpp
+
+ページングの設定ファイル.
+*/
+
 #include <array>
 #include <stdint.h>
 
@@ -8,8 +14,8 @@ namespace  {
     const uint64_t PageSize2M = 512 * PageSize4K;
     const uint64_t PageSize1G = 512 * PageSize2M;
 
-    alignas(PageSize4K) array<uint64_t, 512> pml4_table;
-    alignas(PageSize4K) array<uint64_t, 512> pdp_table;
+    alignas(PageSize4K) array<uint64_t, 1> pml4_table;
+    alignas(PageSize4K) array<uint64_t, 64> pdp_table;
     alignas(PageSize4K) array<array<uint64_t, 512>, 64> page_directory;
 }
 

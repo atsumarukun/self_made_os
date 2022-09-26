@@ -1,3 +1,6 @@
+bits 64
+section .text
+
 extern kernel_main_stack
 extern KernelMain
 

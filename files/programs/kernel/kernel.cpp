@@ -4,9 +4,6 @@
 カーネルのメインファイル.
 */
 
-#include <stdio.h>
-#include "graphics/text.hpp"
-
 #include "graphics/frame_buffer.hpp"
 #include "graphics/graphics.hpp"
 #include "memory/memory_map.hpp"
@@ -34,22 +31,8 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
 
     memory_manager = new(memory_manager_buffer) MemoryManager(memory_map);
 
-    for (int x = 0; x < frame_buffer.width; x++) {
-        for (int y = 0; y < frame_buffer.height; y++) {
-            frame_buffer_writer.WritePixel({x, y}, 0x000000);
-        }
-    }
-
-    for (int i = 0; i < 2; i++) {
-        auto [s, err] = memory_manager->Allocate(5);
-        if (err) {
-            WriteString(frame_buffer_writer, {10, 10 + 16 * i}, err.Message());
-        } else {
-            char st[1024];
-            sprintf(st, "%lu", s);
-            WriteString(frame_buffer_writer, {10, 10 + 16 * i}, st);
-        }
-    }
+    frame_buffer_writer.CreateRectangle({0, 0}, {frame_buffer.width, frame_buffer.height}, 0x000000);
+    frame_buffer_writer.WriteString({10, 10}, "Hello World!", 0xffffff);
 
     while (1) __asm__("hlt");
 }
