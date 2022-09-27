@@ -35,3 +35,5 @@ class MemoryManager {
 
         void SetIsAllocationBits(unsigned int start_frame_index, size_t number_of_frames, bool is_allocation);
 };
+
+void InitializeHeap(MemoryManager& memory_manager);
