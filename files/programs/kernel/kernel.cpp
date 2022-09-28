@@ -10,6 +10,7 @@
 #include "memory/memory_manager.hpp"
 #include "memory/segment.hpp"
 #include "memory/paging.hpp"
+#include "memory/heap.hpp"
 #include "register/register.h"
 #include "devices/pci.hpp"
 
@@ -49,8 +50,11 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
 
     PCI pci_devices;
     char s[1024];
-    sprintf(s, "%lu", pci_devices.GetDevices());
-    frame_buffer_writer.WriteString({10, 100}, s, 0xffffff);
+    for (int i = 0; i < pci_devices.devices.size(); i++) {
+        Device dev = pci_devices.devices[i];
+        sprintf(s, "%d.%d.%d vendor %04x, class %08x, head %02x", dev.bus, dev.device, dev.function, dev.vendor_id, dev.class_code, dev.header_type);
+        frame_buffer_writer.WriteString({10, 26 + (unsigned int) 16 * i}, s, 0xffffff);
+    }
 
     while (1) __asm__("hlt");
 }
