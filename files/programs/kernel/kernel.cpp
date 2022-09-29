@@ -13,6 +13,7 @@
 #include "memory/heap.hpp"
 #include "register/register.h"
 #include "devices/pci.hpp"
+#include "devices/usb/xhci.hpp"
 
 int printk(const char* format, ...) {
     va_list ap;
@@ -50,11 +51,8 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
 
     PCI pci_devices;
     char s[1024];
-    for (int i = 0; i < pci_devices.devices.size(); i++) {
-        Device dev = pci_devices.devices[i];
-        sprintf(s, "%d.%d.%d vendor %04x, class %08x, head %02x", dev.bus, dev.device, dev.function, dev.vendor_id, dev.class_code, dev.header_type);
-        frame_buffer_writer.WriteString({10, 26 + (unsigned int) 16 * i}, s, 0xffffff);
-    }
+    sprintf(s, "%d", InitializeXHCI(pci_devices));
+    frame_buffer_writer.WriteString({10, 26}, s, 0xffffff);
 
     while (1) __asm__("hlt");
 }
