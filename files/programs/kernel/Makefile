@@ -11,7 +11,7 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -rf *.o */*.o */*.bin
+	rm -rf *.o */*.o */*.bin */*/*.o
 
 kernel.elf: $(OBJS) Makefile
 	ld.lld $(LDFLAGS) -o kernel.elf $(OBJS) -lc -lc++ -lc++abi -lm

@@ -14,6 +14,17 @@ PCI::PCI() {
     }
 }
 
+WithError<uint64_t> PCI::ReadBar(Device device, uint8_t index) {
+    if (5 < index) return {0, MakeError(Error::PciBarIndexOutOfRange)};
+    uint32_t bar = ReadConfigAreaRow(device.bus, device.device, device.function, 0x10u + 4 * index);
+    if (!(bar >> 2 & 1)) return {bar, MakeError(Error::Success)};
+
+    if (5 < (index + 1)) return {0, MakeError(Error::PciBarIndexOutOfRange)};
+    uint64_t bar_high = (uint64_t) ReadConfigAreaRow(device.bus, device.device, device.function, 0x10u + 4 * (index + 1));
+
+    return {bar | bar_high << 32, MakeError(Error::Success)};
+}
+
 uint32_t PCI::MakeConfigAddress(uint8_t bus, uint8_t device, uint8_t function, uint8_t off_set) {
     return 1 << 31 | bus << 16 | device << 11 | function << 8 | (off_set & 0xfcu);
 }

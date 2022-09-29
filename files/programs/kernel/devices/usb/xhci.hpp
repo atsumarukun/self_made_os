@@ -2,4 +2,4 @@
 
 #include "../pci.hpp"
 
-int InitializeXHCI(PCI& pci_devices);
+void InitializeXHCI(PCI& pci_devices);

@@ -50,9 +50,6 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
     frame_buffer_writer.WriteString({10, 10}, "Hello World!", 0xffffff);
 
     PCI pci_devices;
-    char s[1024];
-    sprintf(s, "%d", InitializeXHCI(pci_devices));
-    frame_buffer_writer.WriteString({10, 26}, s, 0xffffff);
 
     while (1) __asm__("hlt");
 }

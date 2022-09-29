@@ -4,5 +4,6 @@ qemu/mnt/
 qemu/disk.img
 programs/kernel/*.o
 programs/kernel/*/*.o
+programs/kernel/*/*/*.o
 programs/kernel/*/*.bin
 programs/kernel/kernel.elf

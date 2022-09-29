@@ -12,6 +12,7 @@ class Error {
         enum ErrorCode {
             Success,
             MemoryFrameShortage,
+            PciBarIndexOutOfRange,
         };
         Error(ErrorCode error_code, const char* file, int line): error_code_{error_code} {sprintf(error_message_, "%s:%d: %s", file, line, error_names_[error_code]);}
         char* Message() {return &error_message_[0];}
@@ -25,6 +26,7 @@ class Error {
         static constexpr array error_names_ {
             "Success",
             "MemoryFrameShortage",
+            "PciBarIndexOutOfRange",
         };
 };
 

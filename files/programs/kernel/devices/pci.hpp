@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "../error/error.hpp"
+
 using namespace std;
 
 struct ClassCode {
@@ -19,6 +21,7 @@ class PCI {
         vector<Device> devices{};
 
         PCI();
+        WithError<uint64_t> ReadBar(Device device, uint8_t index);
 
     private:
 
