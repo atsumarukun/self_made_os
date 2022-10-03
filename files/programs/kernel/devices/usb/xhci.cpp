@@ -1,5 +1,7 @@
 #include "xhci.hpp"
 
+HostController::HostController(uintptr_t xhc_mmio_address): xhc_mmio_address{xhc_mmio_address_} {}
+
 void InitializeXHCI(PCI& pci_devices) {
     Device* xhc;
     for (int i = 0; i < pci_devices.devices.size(); i++) {
