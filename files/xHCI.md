@@ -51,7 +51,25 @@ xHCを初期化するため、割り込みメカニズムとしてMSI-Xを利用
 
 1. サポートされている場合、システムI/Oメモリマップを初期化する.
 2. チップハードウェアリセットの後USBSTSレジスタのCNRビットが'0'になるまで待ち、xHCのOperationalレジスタまたはRuntimeレジスタに書き込む.
-- ここ以降はUSBCMDのRun/Stopレジスタに1を書き込む前に完了する必要がある.
 3. CONFIGレジスタのMaxSlotsEnフィールドを書き込む.
 4. DCBAAPレジスタにDevice Context Base Address Arrayの64ビットアドレスを書き込む.
 5. コマンドリングの開始アドレスを示す64bitアドレスをCRCRレジスタに書き込む.
+6. 以下の方法で割り込みを初期化する.
+    1. MSI-Xのメッセージテーブルを割り当て初期化、メッセージアドレスとメッセージデータの設定、ベクタを有効化する. 最低限テーブルベクタエントリ0を初期化し有効化しなければならない.
+    2. MSI-Xの保留ビット配列を割り当て初期化する.
+    3. MSI-X Capability StructureのTable OffsetとPBA OffsetsをそれぞれMSI-X Message Control TableとPending Bit Arrayに指定する.
+    4. MSI-X Capability Structureのメッセージコントロールレジスタを初期化する.
+    5. 以下の方法で各アクティブな割り込みを初期化する.
+        - イベントリングの定義
+            1. イベントリングセグメントの割当と初期化.
+            2. イベントリングセグメントテーブル(ERST)を割り当てる. ERSTテーブルのエントリを初期化し、それぞれのイベントリングセグメントを示しサイズを定義する.
+            3. ERSTSZレジスタにERSTテーブルに示したセグメント数を記す.
+            4. ERDPレジスタにERSTテーブルに示された最初のセグメントの開始アドレスを記す.
+            5. ERSTBAレジスタにERSTが配置される64ビットアドレスを示す.
+            - ERSTBAレジスタに書き込むとイベントリングが有効化する.
+        - 割り込みの定義
+            1. MSI-X Capability Structure Message ControlレジスタのMSI-X Enableフラグを設定する.
+            2. Interrupt Moderationレジスタのintervalフィールドをターゲット割り込みモデレーションレートで初期化する.
+            3. USBCMDレジスタのINTEビットに'1'を書き込む.
+            4. Interrupter ManagementレジスタのIEフィールドに'1'を書き込む.
+7. USBCMDレジスタのRun/Stopビットに'1'を書き込む.
