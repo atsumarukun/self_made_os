@@ -59,7 +59,8 @@ Docker Compose|2.6.1
 - UEFI(2021). 「[Unified Extensible Firmware Interface SPECIFICATIONS](https://uefi.org/specifications)」.UEFI(2022/09/23)
 - ibiblio.org(2003). 「[GCC-Inline-Assembly-HOWTO](http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html)」.ibiblio.org(2022/09/26)
 - osdev.org「[PCI](https://wiki.osdev.org/PCI#Base_Address_Registers)」.osdev.org(2022/09/26)
-- intel.com「[eXtensible Host Controller Interface for Universal Serial Bus (xHCI)](https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/extensible-host-controler-interface-usb-xhci.pdf)」.intel(2022/10/03)
+- intel.com(2019). 「[eXtensible Host Controller Interface for Universal Serial Bus (xHCI)](https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/extensible-host-controler-interface-usb-xhci.pdf)」.intel(2022/10/03)
+- osdev-jp(2019/06/29)「[USB のホスト側の制御（特に xHCI）についてのメモ書き](https://osdev.jp/wiki/USB-Memo)」.osdev-jp(2022/10/03)
 <br><br>
 
 ## 作成開始日
