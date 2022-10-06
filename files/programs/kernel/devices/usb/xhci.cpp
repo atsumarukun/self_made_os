@@ -1,6 +1,8 @@
 #include "xhci.hpp"
 
-HostController::HostController(uintptr_t xhc_mmio_address): xhc_mmio_address{xhc_mmio_address_} {}
+HostController::HostController(uintptr_t xhc_mmio_address): xhc_mmio_address_{xhc_mmio_address},
+                                                            capability_registers_{(CapabilityRegisters*) xhc_mmio_address},
+                                                            operational_registers_ {(OperationalRegisters*) xhc_mmio_address + capability_registers_->CAPLENGTH} {}
 
 void InitializeXHCI(PCI& pci_devices) {
     Device* xhc;
@@ -11,4 +13,6 @@ void InitializeXHCI(PCI& pci_devices) {
     }
 
     const auto [xhc_mmio_address, error] = pci_devices.ReadBar(*xhc, 0);
+
+    HostController host_controller(xhc_mmio_address);
 }
