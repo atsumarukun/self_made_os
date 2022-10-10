@@ -5,21 +5,17 @@
 HostController::HostController(uintptr_t xhc_mmio_address, FrameBufferWriter& writer): xhc_mmio_address_{xhc_mmio_address},
                                                             capability_registers_{(CapabilityRegisters*) xhc_mmio_address},
                                                             operational_registers_{(OperationalRegisters*) (xhc_mmio_address + capability_registers_->CAPLENGTH)} {
-    USBSTSMap* usbsts = &operational_registers_->USBSTS;
     USBCMDMap* usbcmd = &operational_registers_->USBCMD;
+    USBSTSMap* usbsts = &operational_registers_->USBSTS;
 
-    usbcmd->bits.INTE = 0;
-    usbcmd->bits.HSEE = 0;
-    usbcmd->bits.EWE = 0;
     if (!usbsts->bits.HCH) {
         usbcmd->bits.RS = 0;
     }
+    while (!usbsts->bits.HCH);
+
     usbcmd->bits.HCRST = 1;
-    // char s[1024];
-    // sprintf(s, "%p", usbcmd);
-    // writer.WriteString({10, 10}, s, 0xffffff);
     while (usbcmd->bits.HCRST);
-    // while (usbsts.bits.CNR);
+    while (usbsts->bits.CNR);
 }
 
 void InitializeXHCI(PCI& pci_devices, FrameBufferWriter& writer) {

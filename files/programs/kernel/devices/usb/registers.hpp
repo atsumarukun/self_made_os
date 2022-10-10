@@ -86,7 +86,7 @@ struct CapabilityRegisters {
 
 union USBCMDMap {
     uint32_t data;
-    struct {
+    volatile struct {
         uint32_t     RS: 1;
         uint32_t  HCRST: 1;
         uint32_t   INTE: 1;
@@ -106,7 +106,7 @@ union USBCMDMap {
     } __attribute__((packed)) bits;
 } __attribute__((packed));
 
-union USBSTSMap {
+volatile union USBSTSMap {
     uint32_t  data;
     struct {
         uint32_t  HCH: 1;
