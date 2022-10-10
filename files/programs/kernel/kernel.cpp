@@ -45,11 +45,12 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
     memory_manager = new(memory_manager_buffer) MemoryManager(memory_map);
     InitializeHeap(*memory_manager);
 
+    PCI pci_devices;
+    InitializeXHCI(pci_devices, frame_buffer_writer);
+
     frame_buffer_writer.DrawRectangle({0, 0}, {frame_buffer.width, frame_buffer.height}, 0x000000);
     frame_buffer_writer.DrawMouseCursor({300, 200});
     frame_buffer_writer.WriteString({10, 10}, "Hello World!", 0xffffff);
-
-    PCI pci_devices;
 
     while (1) __asm__("hlt");
 }

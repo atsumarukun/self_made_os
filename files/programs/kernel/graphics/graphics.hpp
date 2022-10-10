@@ -3,7 +3,7 @@
 #include "frame_buffer.hpp"
 
 struct Coordinate{
-    unsigned int x, y;
+    int x, y;
 };
 
 struct Size {

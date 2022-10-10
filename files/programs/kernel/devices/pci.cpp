@@ -16,7 +16,7 @@ PCI::PCI() {
 
 WithError<uint64_t> PCI::ReadBar(Device device, uint8_t index) {
     if (5 < index) return {0, MakeError(Error::PciBarIndexOutOfRange)};
-    uint32_t bar = ReadConfigAreaRow(device.bus, device.device, device.function, 0x10u + 4 * index);
+    uint32_t bar = ReadConfigAreaRow(device.bus, device.device, device.function, 0x10 + 4 * index);
     if (!(bar >> 2 & 1)) return {bar, MakeError(Error::Success)};
 
     if (5 < (index + 1)) return {0, MakeError(Error::PciBarIndexOutOfRange)};
