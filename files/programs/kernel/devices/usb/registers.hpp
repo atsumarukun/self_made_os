@@ -2,81 +2,86 @@
 
 #include <stdint.h>
 
+union HCSPARAMS1Map {
+    uint32_t data;
+    struct {
+        uint32_t MaxSlots: 8;
+        uint32_t MaxIntrs: 11;
+        uint32_t         : 5;
+        uint32_t MaxPorts: 8;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union HCSPARAMS2Map {
+    uint32_t data;
+    struct {
+        uint32_t                 IST: 4;
+        uint32_t             ERSTMax: 4;
+        uint32_t                    : 13;
+        uint32_t MaxScratchpadBufsHi: 5;
+        uint32_t                 SPR: 1;
+        uint32_t MaxScratchpadBufsLo: 5;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union HCSPARAMS3Map {
+    uint32_t data;
+    struct {
+        uint32_t U1DeviceExitLatency: 8;
+        uint32_t                    : 8;
+        uint32_t U2DeviceExitLatency: 16;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union HCCPARAMS1Map {
+    uint32_t data;
+    struct {
+        uint32_t       AC64: 1;
+        uint32_t        BNC: 1;
+        uint32_t        CSZ: 1;
+        uint32_t        PPC: 1;
+        uint32_t       PIND: 1;
+        uint32_t       LHRC: 1;
+        uint32_t        LTC: 1;
+        uint32_t        NSS: 1;
+        uint32_t        PAE: 1;
+        uint32_t        SPC: 1;
+        uint32_t        SEC: 1;
+        uint32_t        CFC: 1;
+        uint32_t MaxPSASize: 4;
+        uint32_t       xECP: 16;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union HCCPARAMS2Map {
+    uint32_t data;
+    struct {
+        uint32_t     U3C: 1;
+        uint32_t     CMC: 1;
+        uint32_t     FSC: 1;
+        uint32_t     CTC: 1;
+        uint32_t     LEC: 1;
+        uint32_t     CIC: 1;
+        uint32_t     ETC: 1;
+        uint32_t ETC_TSC: 1;
+        uint32_t     GSC: 1;
+        uint32_t     VTD: 1;
+        uint32_t        : 22;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
 struct CapabilityRegisters {
     uint8_t CAPLENGTH;
     uint8_t Rsvd;
     uint16_t HCIVERSION;
-
-    union HCSPARAMS1 {
-        uint32_t data;
-        struct {
-            uint32_t MaxSlots: 8;
-            uint32_t MaxIntrs: 11;
-            uint32_t         : 5;
-            uint32_t MaxPorts: 8;
-        } __attribute__((packed)) bits;
-    } __attribute__((packed));
-
-    union HCSPARAMS2 {
-        uint32_t data;
-        struct {
-            uint32_t                 IST: 4;
-            uint32_t             ERSTMax: 4;
-            uint32_t                    : 13;
-            uint32_t MaxScratchpadBufsHi: 5;
-            uint32_t                 SPR: 1;
-            uint32_t MaxScratchpadBufsLo: 5;
-        } __attribute__((packed)) bits;
-    } __attribute__((packed));
-
-    union HCSPARAMS3 {
-        uint32_t data;
-        struct {
-            uint32_t U1DeviceExitLatency: 8;
-            uint32_t                    : 8;
-            uint32_t U2DeviceExitLatency: 16;
-        } __attribute__((packed)) bits;
-    } __attribute__((packed));
-
-    union HCCPARAMS1 {
-        uint32_t data;
-        struct {
-            uint32_t       AC64: 1;
-            uint32_t        BNC: 1;
-            uint32_t        CSZ: 1;
-            uint32_t        PPC: 1;
-            uint32_t       PIND: 1;
-            uint32_t       LHRC: 1;
-            uint32_t        LTC: 1;
-            uint32_t        NSS: 1;
-            uint32_t        PAE: 1;
-            uint32_t        SPC: 1;
-            uint32_t        SEC: 1;
-            uint32_t        CFC: 1;
-            uint32_t MaxPSASize: 4;
-            uint32_t       xECP: 16;
-        } __attribute__((packed)) bits;
-    } __attribute__((packed));
-
+    HCSPARAMS1Map HCSPARAMS1;
+    HCSPARAMS2Map HCSPARAMS2;
+    HCSPARAMS3Map HCSPARAMS3;
+    HCCPARAMS1Map HCCPARAMS1;
     uint32_t DBOFF;
     uint32_t RTSOFF;
+    HCCPARAMS2Map HCCPARAMS2;
 
-    union HCCPARAMS2 {
-        uint32_t data;
-        struct {
-            uint32_t     U3C: 1;
-            uint32_t     CMC: 1;
-            uint32_t     FSC: 1;
-            uint32_t     CTC: 1;
-            uint32_t     LEC: 1;
-            uint32_t     CIC: 1;
-            uint32_t     ETC: 1;
-            uint32_t ETC_TSC: 1;
-            uint32_t     GSC: 1;
-            uint32_t     VTD: 1;
-            uint32_t        : 22;
-        } __attribute__((packed)) bits;
-    } __attribute__((packed));
 } __attribute__((packed));
 
 union USBCMDMap {
