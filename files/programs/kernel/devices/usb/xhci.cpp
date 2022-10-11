@@ -2,11 +2,14 @@
 
 #include <stdio.h>
 
+#define DEVICE_SLOTS 8
+
 HostController::HostController(uintptr_t xhc_mmio_address, FrameBufferWriter& writer): xhc_mmio_address_{xhc_mmio_address},
                                                             capability_registers_{(CapabilityRegisters*) xhc_mmio_address},
                                                             operational_registers_{(OperationalRegisters*) (xhc_mmio_address + capability_registers_->CAPLENGTH)} {
     USBCMDMap* usbcmd = &operational_registers_->USBCMD;
     USBSTSMap* usbsts = &operational_registers_->USBSTS;
+    CONFIGMap* config = &operational_registers_->CONFIG;
 
     if (!usbsts->bits.HCH) {
         usbcmd->bits.RS = 0;
@@ -16,6 +19,13 @@ HostController::HostController(uintptr_t xhc_mmio_address, FrameBufferWriter& wr
     usbcmd->bits.HCRST = 1;
     while (usbcmd->bits.HCRST);
     while (usbsts->bits.CNR);
+
+    int max_device_slots = capability_registers_->HCSPARAMS1.bits.MaxSlots;
+    if (max_device_slots < DEVICE_SLOTS) {
+        config->bits.MaxSlotsEn = max_device_slots;
+    } else {
+        config->bits.MaxSlotsEn = DEVICE_SLOTS;
+    }
 }
 
 void InitializeXHCI(PCI& pci_devices, FrameBufferWriter& writer) {
