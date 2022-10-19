@@ -86,7 +86,7 @@ struct CapabilityRegisters {
 
 union USBCMDMap {
     uint32_t data;
-    volatile struct {
+    struct {
         uint32_t     RS: 1;
         uint32_t  HCRST: 1;
         uint32_t   INTE: 1;
@@ -106,7 +106,7 @@ union USBCMDMap {
     } __attribute__((packed)) bits;
 } __attribute__((packed));
 
-volatile union USBSTSMap {
+union USBSTSMap {
     uint32_t  data;
     struct {
         uint32_t  HCH: 1;
@@ -156,4 +156,13 @@ struct OperationalRegisters {
     uint64_t Rsvd2[2];
     uint64_t DCBAAP;
     CONFIGMap CONFIG;
+} __attribute__((packed));
+
+struct InterrupterRegisterSet {
+    uint32_t IMAN;
+    uint32_t IMOD;
+    uint32_t ERSTSZ;
+    uint32_t Rsvd;
+    uint64_t ERSTBA;
+    uint64_t ERDP;
 } __attribute__((packed));
