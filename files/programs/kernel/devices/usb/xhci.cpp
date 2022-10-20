@@ -4,7 +4,7 @@
 
 #define DEVICE_SLOTS 8
 
-HostController::HostController(uintptr_t xhc_mmio_address, MemoryManager& memory_manager, int device_num, FrameBufferWriter& writer):
+HostController::HostController(uintptr_t xhc_mmio_address, MemoryManager& memory_manager, int device_num):
                                                             xhc_mmio_address_{xhc_mmio_address},
                                                             capability_registers_{(CapabilityRegisters*) xhc_mmio_address},
                                                             operational_registers_{(OperationalRegisters*) (xhc_mmio_address + capability_registers_->CAPLENGTH)},

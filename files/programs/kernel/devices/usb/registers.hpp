@@ -166,3 +166,70 @@ struct InterrupterRegisterSet {
     uint64_t ERSTBA;
     uint64_t ERDP;
 } __attribute__((packed));
+
+union PORTSCMap {
+    uint32_t data;
+    struct {
+        uint32_t CCS: 1;
+        uint32_t PED: 1;
+        uint32_t    : 1;
+        uint32_t OCA: 1;
+        uint32_t  PR: 1;
+        uint32_t PLS: 4;
+        uint32_t  PP: 1;
+        uint32_t  PS: 4;
+        uint32_t PIC: 2;
+        uint32_t LWS: 1;
+        uint32_t CSC: 1;
+        uint32_t PEC: 1;
+        uint32_t WRC: 1;
+        uint32_t OCC: 1;
+        uint32_t PRC: 1;
+        uint32_t PLC: 1;
+        uint32_t CEC: 1;
+        uint32_t CAS: 1;
+        uint32_t WCE: 1;
+        uint32_t WDE: 1;
+        uint32_t WOE: 1;
+        uint32_t    : 2;
+        uint32_t  DR: 1;
+        uint32_t WPR: 1;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union PORTPMSCMap {
+    uint32_t data;
+    struct {
+        uint32_t U1Timeout: 8;
+        uint32_t U2Timeout: 8;
+        uint32_t       FLA: 1;
+        uint32_t          : 15;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union PORTLIMap {
+    uint32_t data;
+    struct {
+        uint32_t LEC: 16;
+        uint32_t RLC: 4;
+        uint32_t TLC: 4;
+        uint32_t    : 8;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union PORTHLPMCMap {
+    uint32_t data;
+    struct {
+        uint32_t     HIRDM: 2;
+        uint32_t L1Timeout: 8;
+        uint32_t     BESLD: 4;
+        uint32_t          : 18;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+struct PortRegisterSet {
+    PORTSCMap PORTSC;
+    PORTPMSCMap PORTPMSC;
+    PORTLIMap PORTLI;
+    PORTHLPMCMap PORTHLPMC;
+} __attribute__((packed));
