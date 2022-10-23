@@ -14,7 +14,6 @@
 #include "register/register.h"
 #include "devices/pci.hpp"
 #include "devices/usb/xhci.hpp"
-#include "devices/usb/port.hpp"
 
 #include <stdio.h>
 
@@ -49,20 +48,29 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
     InitializeHeap(*memory_manager);
 
     PCI pci_devices;
-    HostController xhc(XhcMmioBaseAddress(pci_devices), *memory_manager, pci_devices.devices.size());
+    HostController xhc(XhcMmioBaseAddress(pci_devices), pci_devices.devices.size());
+
+    for (int i = 0; i < xhc.MaxPorts(); i++) {
+        Port port = xhc.PortAt(i);
+        if (port.IsConnected()) {
+            xhc.ConfigurePort(port);         
+        }
+    }
 
     frame_buffer_writer.DrawRectangle({0, 0}, {frame_buffer.width, frame_buffer.height}, 0x000000);
     frame_buffer_writer.DrawMouseCursor({300, 200});
     frame_buffer_writer.WriteString({10, 10}, "Hello World!", 0xffffff);
 
     char s[1024];
-    for (int i = 0; i < xhc.MaxPorts(); i++) {
-        Port port = xhc.PortAt(i);
-        if (port.IsConnected()) {
-            sprintf(s, "%x", i);
-            frame_buffer_writer.WriteString({10, 26 + 16 * i}, s, 0xffffff);
-        }
-    }
+    sprintf(s, "%p", xhc.ProcessEvent());
+    frame_buffer_writer.WriteString({10, 26}, s, 0xffffff);
+    // int i = 0;
+    // while (1) {
+    //     if (xhc.ProcessEvent()) {
+    //         sprintf(s, "%d", xhc.ProcessEvent());
+    //         frame_buffer_writer.WriteString({10, 26 + 16 * i++}, s, 0xffffff);
+    //     }
+    // }
 
     while (1) __asm__("hlt");
 }

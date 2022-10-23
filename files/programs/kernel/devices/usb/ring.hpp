@@ -1,8 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "trb.hpp"
 #include "registers.hpp"
-#include "../../memory/memory_manager.hpp"
 
 union EventRingSegmentTableEntry {
     uint32_t data[4];
@@ -17,24 +18,25 @@ union EventRingSegmentTableEntry {
     } __attribute__((packed)) bits;
 };
 
-class RingManager {
+class Ring {
     public:
-        RingManager(int buffer_size, MemoryManager& memory_manager);
-        TRB* Buffer() {return buffer_;}
+        void Initialize(int buffer_size);
+        TRB* Buffer() const;
 
     private:
-        TRB* buffer_ = nullptr;
+        TRB* buffer_;
         int buffer_size_;
         bool cycle_bit_;
         int write_index_;
 };
 
-class EventRingManager {
+class EventRing {
     public:
-        EventRingManager(int buffer_size, InterrupterRegisterSet* interrupter, MemoryManager& memory_manager);
+        void Initialize(int buffer_size, InterrupterRegisterSet* interrupter);
+        uint64_t HasEvent();
 
     private:
-        TRB* buffer_ = nullptr;
+        TRB* buffer_;
         int buffer_size_;
         bool cycle_bit_;
         EventRingSegmentTableEntry* erst_;

@@ -1,61 +1,104 @@
 #include "xhci.hpp"
-#include "device_context.hpp"
-#include "ring.hpp"
+#include "memory.hpp"
+#include "context.hpp"
 
-#define DEVICE_SLOTS 8
+HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num):
+                                            mmio_base_address_{mmio_base_address},
+                                            capability_registers_{(CapabilityRegisters*) mmio_base_address_},
+                                            operational_registers_{(OperationalRegisters*) (mmio_base_address_ + capability_registers_->CAPLENGTH)},
+                                            max_ports_{(uint8_t) capability_registers_->HCSPARAMS1.Read().bits.MaxPorts} {
+    device_manager_.Initialize(device_num);
 
-HostController::HostController(uintptr_t xhc_mmio_address, MemoryManager& memory_manager, int device_num):
-                                                            xhc_mmio_address_{xhc_mmio_address},
-                                                            capability_registers_{(CapabilityRegisters*) xhc_mmio_address},
-                                                            operational_registers_{(OperationalRegisters*) (xhc_mmio_address + capability_registers_->CAPLENGTH)},
-                                                            hcsparams1_{(uint32_t) capability_registers_->HCSPARAMS1.data} {
-    volatile USBCMDMap* usbcmd = &operational_registers_->USBCMD;
-    volatile USBSTSMap* usbsts = &operational_registers_->USBSTS;
-    CONFIGMap* config = &operational_registers_->CONFIG;
-    uint64_t* dcbaap = &operational_registers_->DCBAAP;
-    HCSPARAMS2Map* hcsparams2 = &capability_registers_->HCSPARAMS2;
-    CRCRMap* crcr = &operational_registers_->CRCR;
+    USBCMDMap usbcmd = operational_registers_->USBCMD.Read();
 
-    if (!usbsts->bits.HCH) {
-        usbcmd->bits.RS = 0;
+    if (!operational_registers_->USBSTS.Read().bits.HCH) {
+        usbcmd.bits.RS = 0;
+        operational_registers_->USBCMD.Write(usbcmd);
+        while (!operational_registers_->USBSTS.Read().bits.HCH);
     }
-    while (!usbsts->bits.HCH);
 
-    usbcmd->bits.HCRST = 1;
-    while (usbcmd->bits.HCRST);
-    while (usbsts->bits.CNR);
+    usbcmd = operational_registers_->USBCMD.Read();
+    usbcmd.bits.HCRST = 1;
+    operational_registers_->USBCMD.Write(usbcmd);
+    while (operational_registers_->USBCMD.Read().bits.HCRST);
+    while (operational_registers_->USBSTS.Read().bits.CNR);
 
-    int max_device_slots = capability_registers_->HCSPARAMS1.bits.MaxSlots;
-    int device_slots = max_device_slots < DEVICE_SLOTS? max_device_slots: DEVICE_SLOTS;
-    config->bits.MaxSlotsEn = device_slots;
+    CONFIGMap config = operational_registers_->CONFIG.Read();
+    config.bits.MaxSlotsEn = device_num;
+    operational_registers_->CONFIG.Write(config);
 
-    uint16_t max_scratchpad_buffers = hcsparams2->bits.MaxScratchpadBufsHi << 5 | hcsparams2->bits.MaxScratchpadBufsLo;
-    uintptr_t scratchpad_buffer_array[max_scratchpad_buffers];
-    for (int i = 0; i < max_scratchpad_buffers; i++) {
-        scratchpad_buffer_array[i] = memory_manager.Allocate(1).value;
+    HCSPARAMS2Map hcsparams2 = capability_registers_->HCSPARAMS2.Read();
+    uint16_t max_scratchpad_buffers = hcsparams2.bits.MaxScratchpadBufsHi << 5 | hcsparams2.bits.MaxScratchpadBufsLo;
+    if (max_scratchpad_buffers) {
+        void** scratchpad_buffers = (void**) Allocate(sizeof(void*) * max_scratchpad_buffers, 64, 4096);
+        for (int i = 0; i < max_scratchpad_buffers; i++) {
+            scratchpad_buffers[i] = Allocate(4096, 4096, 4096);
+        }
+        device_manager_.DeviceContexts()[0] = (DeviceContext*) scratchpad_buffers;
     }
-    DeviceContext* dcbaa[device_slots];
-    for (int i = 0; i < device_slots; i++) {
-        dcbaa[i] = nullptr;
+
+    DCBAAPMap dcbaap = operational_registers_->DCBAAP.Read();
+    dcbaap.bits.DCBAAP = (uint64_t) device_manager_.DeviceContexts() >> 6;
+    operational_registers_->DCBAAP.Write(dcbaap);
+
+    cr_.Initialize(32);
+    CRCRMap crcr = operational_registers_->CRCR.Read();
+    crcr.bits.RCS = 1;
+    crcr.bits.CS = 0;
+    crcr.bits.CA = 0;
+    crcr.bits.CRP = (uint64_t) cr_.Buffer() >> 6;
+    operational_registers_->CRCR.Write(crcr);
+    InterrupterRegisterSet* interrupter = &InterrupterRegisterSets()[0];
+    er_.Initialize(32, interrupter);
+
+    interrupter->IMAN = 0x3u;
+
+    usbcmd = operational_registers_->USBCMD.Read();
+    usbcmd.bits.INTE = 1;
+    operational_registers_->USBCMD.Write(usbcmd);
+
+    usbcmd = operational_registers_->USBCMD.Read();
+    usbcmd.bits.RS = 1;
+    operational_registers_->USBCMD.Write(usbcmd);
+    while (operational_registers_->USBSTS.Read().bits.HCH);
+}
+
+uint8_t HostController::MaxPorts() const {
+    return max_ports_;
+}
+
+Port HostController::PortAt(uint8_t port_num) {
+    return Port(port_num, &PortRegisterSets()[port_num]);
+}
+
+void HostController::ConfigurePort(Port& port) {
+    if (port.Status() == PortStatus::NotConnected) {
+        ResetPort(port);
     }
-    dcbaa[0] = (DeviceContext*) scratchpad_buffer_array;
-    *dcbaap = (uint64_t) &dcbaa;
+}
 
-    RingManager cr(device_num, memory_manager);
-    crcr->bits.RCS = 1;
-    crcr->bits.CS = 0;
-    crcr->bits.CA = 0;
-    crcr->bits.CRP = (uint64_t) cr.Buffer() << 6;
+uint64_t HostController::ProcessEvent() {
+    return er_.HasEvent();
+}
 
-    InterrupterRegisterSet* interrupter_register_sets = (InterrupterRegisterSet*) (xhc_mmio_address_ + (capability_registers_->RTSOFF | 0x00000) + 0x20);
-    EventRingManager er(device_num, interrupter_register_sets, memory_manager);
+Array<InterrupterRegisterSet> HostController::InterrupterRegisterSets() const {
+    return Array<InterrupterRegisterSet>(mmio_base_address_ + capability_registers_->RTSOFF + 0x20u, 1024);
+}
 
-    interrupter_register_sets->IMAN = 3;
+Array<PortRegisterSet> HostController::PortRegisterSets() const {
+    return Array<PortRegisterSet>((uintptr_t) operational_registers_ + 0x400u, max_ports_);
+}
 
-    usbcmd->bits.INTE = 1;
-
-    usbcmd->bits.RS = 1;
-    while (usbsts->bits.HCH);
+void HostController::ResetPort(Port& port) {
+    if (!port.IsConnected()) return;
+    if (addressing_port_) {
+        port.SetStatus(PortStatus::WaitingAddress);
+    } else {
+        if (port.Status() != PortStatus::NotConnected && port.Status() != PortStatus::WaitingAddress) return;
+        addressing_port_ = port.Number();
+        port.SetStatus(PortStatus::ResettingPort);
+        port.Reset();
+    }
 }
 
 uintptr_t XhcMmioBaseAddress(PCI& pci_devices) {

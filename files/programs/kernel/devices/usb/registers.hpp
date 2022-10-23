@@ -2,8 +2,41 @@
 
 #include <stdint.h>
 
+template <typename T>
+class MMIO {
+    public:
+        T Read() const {
+            T tmp;
+            for (int i = 0; i < size_; i++) {
+                tmp.data[i] = value_.data[i];
+            }
+            return tmp;
+        }
+
+        void Write(const T& value) {
+            for (int i = 0; i < size_; i++) {
+                value_.data[i] = value.data[i];
+            }
+        }
+
+    private:
+        volatile T value_;
+        static const int size_ = sizeof(T) / sizeof(value_.data[0]);
+};
+
+template <typename T>
+class Array {
+    public:
+        Array(uintptr_t base_address, int size): array_{(T*) base_address}, size_{size} {}
+        T& operator [](int index) { return array_[index]; }
+
+    private:
+        T* array_;
+        int size_;
+};
+
 union HCSPARAMS1Map {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t MaxSlots: 8;
         uint32_t MaxIntrs: 11;
@@ -13,7 +46,7 @@ union HCSPARAMS1Map {
 } __attribute__((packed));
 
 union HCSPARAMS2Map {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t                 IST: 4;
         uint32_t             ERSTMax: 4;
@@ -25,7 +58,7 @@ union HCSPARAMS2Map {
 } __attribute__((packed));
 
 union HCSPARAMS3Map {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t U1DeviceExitLatency: 8;
         uint32_t                    : 8;
@@ -34,7 +67,7 @@ union HCSPARAMS3Map {
 } __attribute__((packed));
 
 union HCCPARAMS1Map {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t       AC64: 1;
         uint32_t        BNC: 1;
@@ -54,7 +87,7 @@ union HCCPARAMS1Map {
 } __attribute__((packed));
 
 union HCCPARAMS2Map {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t     U3C: 1;
         uint32_t     CMC: 1;
@@ -74,18 +107,18 @@ struct CapabilityRegisters {
     uint8_t CAPLENGTH;
     uint8_t Rsvd;
     uint16_t HCIVERSION;
-    HCSPARAMS1Map HCSPARAMS1;
-    HCSPARAMS2Map HCSPARAMS2;
-    HCSPARAMS3Map HCSPARAMS3;
-    HCCPARAMS1Map HCCPARAMS1;
+    MMIO<HCSPARAMS1Map> HCSPARAMS1;
+    MMIO<HCSPARAMS2Map> HCSPARAMS2;
+    MMIO<HCSPARAMS3Map> HCSPARAMS3;
+    MMIO<HCCPARAMS1Map> HCCPARAMS1;
     uint32_t DBOFF;
     uint32_t RTSOFF;
-    HCCPARAMS2Map HCCPARAMS2;
+    MMIO<HCCPARAMS2Map> HCCPARAMS2;
 
 } __attribute__((packed));
 
 union USBCMDMap {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t     RS: 1;
         uint32_t  HCRST: 1;
@@ -107,7 +140,7 @@ union USBCMDMap {
 } __attribute__((packed));
 
 union USBSTSMap {
-    uint32_t  data;
+    uint32_t  data[1];
     struct {
         uint32_t  HCH: 1;
         uint32_t     : 1;
@@ -125,7 +158,7 @@ union USBSTSMap {
 } __attribute__((packed));
 
 union CRCRMap {
-    uint64_t data;
+    uint64_t data[1];
     struct {
         uint64_t RCS: 1;
         uint64_t  CS: 1;
@@ -136,8 +169,16 @@ union CRCRMap {
     } __attribute__((packed)) bits;
 } __attribute__((packed));
 
+union DCBAAPMap {
+    uint64_t data[1];
+    struct {
+        uint64_t       : 6;
+        uint64_t DCBAAP: 26;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
 union CONFIGMap {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t MaxSlotsEn: 8;
         uint32_t        U3E: 1;
@@ -147,15 +188,32 @@ union CONFIGMap {
 } __attribute__((packed));
 
 struct OperationalRegisters {
-    USBCMDMap USBCMD;
-    USBSTSMap USBSTS;
+    MMIO<USBCMDMap> USBCMD;
+    MMIO<USBSTSMap> USBSTS;
     uint32_t PAGESIZE;
     uint64_t Rsvd1;
     uint32_t DNCTRL;
-    CRCRMap CRCR;
+    MMIO<CRCRMap> CRCR;
     uint64_t Rsvd2[2];
-    uint64_t DCBAAP;
-    CONFIGMap CONFIG;
+    MMIO<DCBAAPMap> DCBAAP;
+    MMIO<CONFIGMap> CONFIG;
+} __attribute__((packed));
+
+union ERSTBAMap {
+    uint64_t data[1];
+    struct {
+        uint64_t       : 6;
+        uint64_t ERSTBA: 58;
+    } __attribute__((packed)) bits;
+} __attribute__((packed));
+
+union ERDPMap {
+    uint64_t data[1];
+    struct {
+        uint64_t DESI: 3;
+        uint64_t  EHB: 1;
+        uint64_t ERDP: 60;
+    } __attribute__((packed)) bits;
 } __attribute__((packed));
 
 struct InterrupterRegisterSet {
@@ -163,12 +221,12 @@ struct InterrupterRegisterSet {
     uint32_t IMOD;
     uint32_t ERSTSZ;
     uint32_t Rsvd;
-    uint64_t ERSTBA;
-    uint64_t ERDP;
+    MMIO<ERSTBAMap> ERSTBA;
+    MMIO<ERDPMap> ERDP;
 } __attribute__((packed));
 
 union PORTSCMap {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t CCS: 1;
         uint32_t PED: 1;
@@ -198,7 +256,7 @@ union PORTSCMap {
 } __attribute__((packed));
 
 union PORTPMSCMap {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t U1Timeout: 8;
         uint32_t U2Timeout: 8;
@@ -208,7 +266,7 @@ union PORTPMSCMap {
 } __attribute__((packed));
 
 union PORTLIMap {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t LEC: 16;
         uint32_t RLC: 4;
@@ -218,7 +276,7 @@ union PORTLIMap {
 } __attribute__((packed));
 
 union PORTHLPMCMap {
-    uint32_t data;
+    uint32_t data[1];
     struct {
         uint32_t     HIRDM: 2;
         uint32_t L1Timeout: 8;
@@ -228,8 +286,8 @@ union PORTHLPMCMap {
 } __attribute__((packed));
 
 struct PortRegisterSet {
-    PORTSCMap PORTSC;
-    PORTPMSCMap PORTPMSC;
-    PORTLIMap PORTLI;
-    PORTHLPMCMap PORTHLPMC;
+    MMIO<PORTSCMap> PORTSC;
+    MMIO<PORTPMSCMap> PORTPMSC;
+    MMIO<PORTLIMap> PORTLI;
+    MMIO<PORTHLPMCMap> PORTHLPMC;
 } __attribute__((packed));

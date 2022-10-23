@@ -57,4 +57,4 @@ union EndpointContextMap {
 struct DeviceContext {
     SlotContextMap SlotContext;
     EndpointContextMap EndpointContext[31];
-}__attribute__((packed));
+} __attribute__((packed));

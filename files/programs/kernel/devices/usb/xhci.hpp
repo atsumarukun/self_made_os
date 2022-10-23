@@ -1,23 +1,34 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "registers.hpp"
+#include "device_manager.hpp"
+#include "ring.hpp"
 #include "port.hpp"
 #include "../pci.hpp"
-#include "../../memory/memory_manager.hpp"
 
 class HostController {
     public:
-        HostController(uintptr_t xhc_mmio_address, MemoryManager& memory_manager, int device_num);
-        uint8_t MaxPorts() const { return hcsparams1_ >> 24; }
-        Port PortAt(uint8_t port_num) { return Port(port_num, (PortRegisterSet*) (GetPortRegisterSet() + port_num * sizeof(PortRegisterSet))); }
+        HostController(uintptr_t mmio_base_address, uint8_t device_num);
+        uint8_t MaxPorts() const;
+        Port PortAt(uint8_t port_num);
+        void ConfigurePort(Port& port);
+        uint64_t ProcessEvent();
 
     private:
-        const uintptr_t xhc_mmio_address_;
+        const uintptr_t mmio_base_address_;
         CapabilityRegisters* const capability_registers_;
         OperationalRegisters* const operational_registers_;
-        const uint32_t hcsparams1_;
+        uint8_t max_ports_;
+        DeviceManager device_manager_;
+        Ring cr_;
+        EventRing er_;
+        uint8_t addressing_port_ = 0;
 
-        uintptr_t GetPortRegisterSet() { return (uintptr_t) operational_registers_ + 0x400u; }
+        Array<InterrupterRegisterSet> InterrupterRegisterSets() const;
+        Array<PortRegisterSet> PortRegisterSets() const;
+        void ResetPort(Port& port);
 };
 
 uintptr_t XhcMmioBaseAddress(PCI& pci_devices);
