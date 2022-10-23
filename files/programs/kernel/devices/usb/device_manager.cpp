@@ -1,10 +1,9 @@
 #include "device_manager.hpp"
-#include "memory.hpp"
 
-void DeviceManager::Initialize(uint8_t max_slots) {
+void DeviceManager::Initialize(uint8_t max_slots, MemoryManager& memory_manager) {
     max_slots_ = max_slots;
 
-    device_context_pointers_ = (DeviceContext**) Allocate(sizeof(DeviceContext*) * (max_slots_ + 1), 64, 4096);
+    device_context_pointers_ = (DeviceContext**) memory_manager.Allocate((sizeof(DeviceContext*) * (max_slots_ + 1) + 4095) / 44096).value;
     if (!device_context_pointers_) {
         return;
     }

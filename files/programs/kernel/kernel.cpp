@@ -48,7 +48,7 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
     InitializeHeap(*memory_manager);
 
     PCI pci_devices;
-    HostController xhc(XhcMmioBaseAddress(pci_devices), pci_devices.devices.size());
+    HostController xhc(XhcMmioBaseAddress(pci_devices), pci_devices.devices.size(), *memory_manager);
 
     for (int i = 0; i < xhc.MaxPorts(); i++) {
         Port port = xhc.PortAt(i);
@@ -62,7 +62,7 @@ extern "C" void KernelMain(const FrameBuffer& frame_buffer_tmp, const MemoryMap&
     frame_buffer_writer.WriteString({10, 10}, "Hello World!", 0xffffff);
 
     char s[1024];
-    sprintf(s, "%p", xhc.ProcessEvent());
+    sprintf(s, "%d", xhc.ProcessEvent());
     frame_buffer_writer.WriteString({10, 26}, s, 0xffffff);
     // int i = 0;
     // while (1) {

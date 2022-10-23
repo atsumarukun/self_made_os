@@ -1,13 +1,12 @@
 #include "xhci.hpp"
-#include "memory.hpp"
 #include "context.hpp"
 
-HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num):
+HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num, MemoryManager& memory_manager):
                                             mmio_base_address_{mmio_base_address},
                                             capability_registers_{(CapabilityRegisters*) mmio_base_address_},
                                             operational_registers_{(OperationalRegisters*) (mmio_base_address_ + capability_registers_->CAPLENGTH)},
                                             max_ports_{(uint8_t) capability_registers_->HCSPARAMS1.Read().bits.MaxPorts} {
-    device_manager_.Initialize(device_num);
+    device_manager_.Initialize(device_num, memory_manager);
 
     USBCMDMap usbcmd = operational_registers_->USBCMD.Read();
 
@@ -30,9 +29,9 @@ HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num):
     HCSPARAMS2Map hcsparams2 = capability_registers_->HCSPARAMS2.Read();
     uint16_t max_scratchpad_buffers = hcsparams2.bits.MaxScratchpadBufsHi << 5 | hcsparams2.bits.MaxScratchpadBufsLo;
     if (max_scratchpad_buffers) {
-        void** scratchpad_buffers = (void**) Allocate(sizeof(void*) * max_scratchpad_buffers, 64, 4096);
+        void** scratchpad_buffers = (void**) memory_manager.Allocate((sizeof(void*) * max_scratchpad_buffers + 4095) / 4096).value;
         for (int i = 0; i < max_scratchpad_buffers; i++) {
-            scratchpad_buffers[i] = Allocate(4096, 4096, 4096);
+            scratchpad_buffers[i] = (void*) memory_manager.Allocate(1).value;
         }
         device_manager_.DeviceContexts()[0] = (DeviceContext*) scratchpad_buffers;
     }
@@ -41,7 +40,7 @@ HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num):
     dcbaap.bits.DCBAAP = (uint64_t) device_manager_.DeviceContexts() >> 6;
     operational_registers_->DCBAAP.Write(dcbaap);
 
-    cr_.Initialize(32);
+    cr_.Initialize(32, memory_manager);
     CRCRMap crcr = operational_registers_->CRCR.Read();
     crcr.bits.RCS = 1;
     crcr.bits.CS = 0;
@@ -49,7 +48,7 @@ HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num):
     crcr.bits.CRP = (uint64_t) cr_.Buffer() >> 6;
     operational_registers_->CRCR.Write(crcr);
     InterrupterRegisterSet* interrupter = &InterrupterRegisterSets()[0];
-    er_.Initialize(32, interrupter);
+    er_.Initialize(32, interrupter, memory_manager);
 
     interrupter->IMAN = 0x3u;
 
@@ -77,7 +76,7 @@ void HostController::ConfigurePort(Port& port) {
     }
 }
 
-uint64_t HostController::ProcessEvent() {
+bool HostController::ProcessEvent() {
     return er_.HasEvent();
 }
 

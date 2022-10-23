@@ -4,6 +4,7 @@
 
 #include "trb.hpp"
 #include "registers.hpp"
+#include "../../memory/memory_manager.hpp"
 
 union EventRingSegmentTableEntry {
     uint32_t data[4];
@@ -20,7 +21,7 @@ union EventRingSegmentTableEntry {
 
 class Ring {
     public:
-        void Initialize(int buffer_size);
+        void Initialize(int buffer_size, MemoryManager& memory_manager);
         TRB* Buffer() const;
 
     private:
@@ -32,8 +33,8 @@ class Ring {
 
 class EventRing {
     public:
-        void Initialize(int buffer_size, InterrupterRegisterSet* interrupter);
-        uint64_t HasEvent();
+        void Initialize(int buffer_size, InterrupterRegisterSet* interrupter, MemoryManager& memory_manager);
+        bool HasEvent();
 
     private:
         TRB* buffer_;

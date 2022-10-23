@@ -1,14 +1,13 @@
 #include <string.h>
 
 #include "ring.hpp"
-#include "memory.hpp"
 
-void Ring::Initialize(int buffer_size) {
+void Ring::Initialize(int buffer_size, MemoryManager& memory_manager) {
     buffer_size_ = buffer_size;
     cycle_bit_ = true;
     write_index_ = 0;
 
-    buffer_ = (TRB*) Allocate(sizeof(TRB) * buffer_size_, 64, 64 * 1024);
+    buffer_ = (TRB*) memory_manager.Allocate((sizeof(TRB) * buffer_size_ + 4095) / 4096).value;
     if (!buffer_) return;
     memset(buffer_, 0, sizeof(TRB) * buffer_size_);
 }
@@ -17,16 +16,16 @@ TRB* Ring::Buffer() const {
     return buffer_;
 }
 
-void EventRing::Initialize(int buffer_size, InterrupterRegisterSet* interrupter) {
+void EventRing::Initialize(int buffer_size, InterrupterRegisterSet* interrupter, MemoryManager& memory_manager) {
     buffer_size_ = buffer_size;
     cycle_bit_ = true;
     interrupter_ = interrupter;
 
-    buffer_ = (TRB*) Allocate(sizeof(TRB) * buffer_size_, 64, 64 * 1024);
+    buffer_ = (TRB*) memory_manager.Allocate((sizeof(TRB) * buffer_size_ + 4095) /  4096).value;
     if (!buffer_) return;
     memset(buffer_, 0, sizeof(TRB) * buffer_size_);
 
-    erst_ = (EventRingSegmentTableEntry*) Allocate(sizeof(EventRingSegmentTableEntry) * 1, 64, 64 * 1024);
+    erst_ = (EventRingSegmentTableEntry*) memory_manager.Allocate((sizeof(EventRingSegmentTableEntry) * 1 + 44095) / 4096).value;
     if (!erst_) return;
     memset(erst_, 0, sizeof(EventRingSegmentTableEntry) * 1);
 
@@ -42,7 +41,7 @@ void EventRing::Initialize(int buffer_size, InterrupterRegisterSet* interrupter)
     interrupter_->ERSTBA.Write(erstba);
 }
 
-uint64_t EventRing::HasEvent() {
+bool EventRing::HasEvent() {
     TRB* trb = (TRB*) (interrupter_->ERDP.Read().bits.ERDP << 4);
-    return (uint64_t) trb->bits.cycle_bit;
+    return trb->bits.cycle_bit == cycle_bit_;
 }

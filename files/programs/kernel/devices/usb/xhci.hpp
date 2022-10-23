@@ -7,14 +7,15 @@
 #include "ring.hpp"
 #include "port.hpp"
 #include "../pci.hpp"
+#include "../../memory/memory_manager.hpp"
 
 class HostController {
     public:
-        HostController(uintptr_t mmio_base_address, uint8_t device_num);
+        HostController(uintptr_t mmio_base_address, uint8_t device_num, MemoryManager& memory_manager);
         uint8_t MaxPorts() const;
         Port PortAt(uint8_t port_num);
         void ConfigurePort(Port& port);
-        uint64_t ProcessEvent();
+        bool ProcessEvent();
 
     private:
         const uintptr_t mmio_base_address_;
