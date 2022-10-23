@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "xhci.hpp"
 #include "context.hpp"
 
@@ -6,7 +8,11 @@ HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num, 
                                             capability_registers_{(CapabilityRegisters*) mmio_base_address_},
                                             operational_registers_{(OperationalRegisters*) (mmio_base_address_ + capability_registers_->CAPLENGTH)},
                                             max_ports_{(uint8_t) capability_registers_->HCSPARAMS1.Read().bits.MaxPorts} {
-    device_manager_.Initialize(device_num, memory_manager);
+    device_context_pointers_ = (DeviceContext**) memory_manager.Allocate((sizeof(DeviceContext*) * (device_num + 1) + 4095) / 44096).value;
+    if (!device_context_pointers_) return;
+    for (int i = 0; i < device_num; i++) {
+        device_context_pointers_[i] = nullptr;
+    }
 
     USBCMDMap usbcmd = operational_registers_->USBCMD.Read();
 
@@ -33,11 +39,11 @@ HostController::HostController(uintptr_t mmio_base_address, uint8_t device_num, 
         for (int i = 0; i < max_scratchpad_buffers; i++) {
             scratchpad_buffers[i] = (void*) memory_manager.Allocate(1).value;
         }
-        device_manager_.DeviceContexts()[0] = (DeviceContext*) scratchpad_buffers;
+        device_context_pointers_[0] = (DeviceContext*) scratchpad_buffers;
     }
 
     DCBAAPMap dcbaap = operational_registers_->DCBAAP.Read();
-    dcbaap.bits.DCBAAP = (uint64_t) device_manager_.DeviceContexts() >> 6;
+    dcbaap.bits.DCBAAP = (uint64_t) device_context_pointers_ >> 6;
     operational_registers_->DCBAAP.Write(dcbaap);
 
     cr_.Initialize(32, memory_manager);

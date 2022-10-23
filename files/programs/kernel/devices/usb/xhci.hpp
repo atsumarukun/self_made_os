@@ -3,9 +3,9 @@
 #include <stdint.h>
 
 #include "registers.hpp"
-#include "device_manager.hpp"
 #include "ring.hpp"
 #include "port.hpp"
+#include "context.hpp"
 #include "../pci.hpp"
 #include "../../memory/memory_manager.hpp"
 
@@ -22,7 +22,7 @@ class HostController {
         CapabilityRegisters* const capability_registers_;
         OperationalRegisters* const operational_registers_;
         uint8_t max_ports_;
-        DeviceManager device_manager_;
+        DeviceContext** device_context_pointers_;
         Ring cr_;
         EventRing er_;
         uint8_t addressing_port_ = 0;
